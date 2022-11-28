@@ -9,13 +9,54 @@ local Clock = ACF.Utilities.Clock
 -- Min range for easing should be 0.5°, max unknown
 -- Make view cone adjust to the tickrate and rotation speed
 
+function ENT:UpdateBounds()
+	local Bounds = self.Bounds
+	local Center = self.Angle
+	local Half   = self.Coverage * 0.5
+	local Left   = Center - Half
+	local Right  = Center + Half
+	local Offset = 0
+
+	if Left < 0 then
+		Offset = Left
+		Left   = Left % 360
+	elseif Right > 360 then
+		Offset = Right - 360
+		Right  = Right % 360
+	end
+
+	if not Bounds then
+		self.Bounds = {
+			Left   = Left,
+			Right  = Right,
+			Offset = Offset,
+		}
+	else
+		Bounds.Left   = Left
+		Bounds.Right  = Right
+		Bounds.Offset = Offset
+	end
+end
+
+function ENT:IsWithinBounds(Angle)
+	local Bounds = self.Bounds
+	local Offset = Bounds.Offset
+	local Left   = Bounds.Left + Offset
+	local Right  = Bounds.Right + Offset
+	local Target = Angle % 360 + Offset
+
+	return Target >= Left and Target <= Right
+end
+
 function ENT:Initialize()
-	self.Angle     = 90 -- degrees
+	self.Angle     = 180 -- degrees
 	self.Current   = 0 -- degrees
 	self.Direction = 1
 	self.Speed     = 0 -- degrees per second
 	self.MaxSpeed  = 90 -- degrees per second
 	self.Coverage  = 180 -- degrees
+
+	self:UpdateBounds()
 end
 
 function ENT:GetStep()
