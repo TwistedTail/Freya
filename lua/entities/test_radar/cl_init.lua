@@ -4,6 +4,13 @@ local math  = math
 --local ease  = math.ease
 local Clock = ACF.Utilities.Clock
 
+local Directions = {
+	Left  = -1,
+	Right = 1,
+	None  = 0
+}
+
+
 -- Switch to just using movement based on increments
 -- Use cubic or sine easing for when the movement starts/ends instead
 -- Min range for easing should be 0.5°, max unknown
@@ -48,29 +55,38 @@ function ENT:IsWithinBounds(Angle)
 	return Target >= Left and Target <= Right
 end
 
+function ENT:SetDirection(Direction)
+	local Value = Direction and Directions[Direction]
+
+	if not Value then return end
+
+	self.Direction = Direction
+	self.DirMult   = Value
+end
+
 function ENT:Initialize()
-	self.Angle     = 180 -- degrees
-	self.Current   = 0 -- degrees
-	self.Direction = 1
-	self.Speed     = 0 -- degrees per second
-	self.MaxSpeed  = 90 -- degrees per second
-	self.Coverage  = 180 -- degrees
+	self.Angle    = 180 -- degrees
+	self.Current  = 0 -- degrees
+	self.Speed    = 0 -- degrees per second
+	self.MaxSpeed = 90 -- degrees per second
+	self.Coverage = 180 -- degrees
 
 	self:UpdateBounds()
+	self:SetDirection("Right")
 end
 
 function ENT:GetStep()
-	return self.MaxSpeed * self.Direction * Clock.DeltaTime
+	return self.MaxSpeed * self.DirMult * Clock.DeltaTime
 end
 
 function ENT:GetLimit()
-	return self.Angle + self.Coverage * self.Direction * 0.5
+	return self.Angle + self.Coverage * self.DirMult * 0.5
 end
 
 -- TODO: Deal with the gap between 0° and 359° failing to trigger this
 -- NOTE: Maybe keep track of how much it needs to move on the current direction?
 function ENT:GetExcess( Next, Limit )
-	local Direction = self.Direction
+	local Direction = self.DirMult
 
 	Next  = Next * Direction
 	Limit = Limit * Direction
@@ -86,11 +102,11 @@ function ENT:GetNextAngle()
 		local Excess = self:GetExcess( Next, Limit )
 
 		if Excess > 0 then
-			local Direction = self.Direction * -1
+			local Direction = self.DirMult * -1
 
 			Next = Limit + Excess * Direction
 
-			self.Direction = Direction
+			self.DirMult = Direction
 		end
 	end
 
