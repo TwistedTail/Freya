@@ -64,7 +64,7 @@ function ENT:SetDirection( Direction )
 	self.DirMult   = Value
 end
 
-function ENT:GetOptimalDirection( Desired )
+function ENT:GetShortestWay( Desired )
 	local Current   = self.Current
 	local Delta     = Desired - Current
 	local Right     = Delta < 0 and ( 360 - Current + Desired ) or Delta
