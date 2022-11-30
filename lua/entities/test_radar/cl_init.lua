@@ -1,4 +1,4 @@
-include ("shared.lua")
+include( "shared.lua" )
 
 local math  = math
 --local ease  = math.ease
@@ -45,7 +45,7 @@ function ENT:UpdateBounds()
 	end
 end
 
-function ENT:IsWithinBounds(Angle)
+function ENT:IsWithinBounds( Angle )
 	local Bounds = self.Bounds
 	local Offset = Bounds.Offset
 	local Left   = Bounds.Left + Offset
@@ -55,13 +55,23 @@ function ENT:IsWithinBounds(Angle)
 	return Target >= Left and Target <= Right
 end
 
-function ENT:SetDirection(Direction)
+function ENT:SetDirection( Direction )
 	local Value = Direction and Directions[Direction]
 
 	if not Value then return end
 
 	self.Direction = Direction
 	self.DirMult   = Value
+end
+
+function ENT:GetOptimalDirection( Desired )
+	local Current   = self.Current
+	local Delta     = Desired - Current
+	local Right     = Delta < 0 and ( 360 - Current + Desired ) or Delta
+	local Left      = 360 - Right
+	local Clockwise = Right >= Left
+
+	return Clockwise and "Right" or "Left", Clockwise and Right or Left
 end
 
 function ENT:Initialize()
@@ -72,7 +82,7 @@ function ENT:Initialize()
 	self.Coverage = 180 -- degrees
 
 	self:UpdateBounds()
-	self:SetDirection("Right")
+	self:SetDirection( "Right" )
 end
 
 function ENT:GetStep()
@@ -95,7 +105,7 @@ function ENT:GetExcess( Next, Limit )
 end
 
 function ENT:GetNextAngle()
-	local Next = (self.Current + self:GetStep()) % 360
+	local Next = ( self.Current + self:GetStep() ) % 360
 
 	if self.Coverage ~= 360 then
 		local Limit  = self:GetLimit()
@@ -136,6 +146,6 @@ function ENT:Draw()
 	Angle:RotateAroundAxis( Angle:Forward(), 90 )
 
 	cam.Start3D2D( Position, Angle, 1 )
-		draw.SimpleText(Text, "Default", 0, 0, nil, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+		draw.SimpleText( Text, "Default", 0, 0, nil, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER )
 	cam.End3D2D()
 end
